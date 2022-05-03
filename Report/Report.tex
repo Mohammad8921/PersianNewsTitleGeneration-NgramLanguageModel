@@ -1,0 +1,95 @@
+\documentclass{article}
+
+\usepackage{hyperref}
+\usepackage{amsmath, amssymb}
+\usepackage{xepersian}
+\settextfont{Yas}
+\renewcommand{\baselinestretch}{1.25}
+\setlatintextfont{Times New Roman}
+\setmathdigitfont{Yas}
+\title{گزارش کار تمرین اول درس پردازش زبان‌های طبیعی \\ طراحی مدل‌های زبانی تولیدکننده متن}
+\author{محمد لشکری ۴۰۰۱۱۲۰۸۷}
+
+\begin{document}
+	\maketitle
+	\section{جمع‌آوری دادگان}
+	۲۷۳۴ عنوان خبری از بخش آرشیو سایت‌های ایرنا و ایسنا جمع‌آوری شد. دادگان با نسبت ۰/۲ به آموزش و آزمایش تقسیم‌بندی شده‌اند. عناوین خبری شامل نیم‌فاصله، خط فاصله و عدد بودند که مدیریت آن‌ها در بخش بعد تشریح می‌گردد. کد‌های مربوط به جمع‌آوری دادگان در فایل 
+	\lr{title-scraper/scraper.py}
+	و دادگان جمع‌آوری شده در فایل 
+	\lr{title-scraper/titles.txt}
+	قرار دارد. 
+	\section{پیش پردازش دادگان}
+	کاراکتر‌های اضافی(به جز ؟،حروف فارسی، عدد، نقطه)  حذف و اعداد نیز با کاراکتر N جایگزین شدند. مجموعه آموزشی و آزمایشی به ترتیب شامل ۷۱۲ و ۵۰۸ کلمه یکتا هستند. فایل 
+	\lr{frequent.txt}
+	شامل ۲۰۰ کلمه پرتکرار دادگان آموزشی است. چون تعداد کلمات یکتای مجموعه آموزشی از ۱۰۰۰۰ کمتر است 
+	\lr{unk}
+	در مجموعه لغات وجود ندارد. فایل‌های
+	\lr{dataset/titles\textunderscore train.txt}
+	و 
+	\lr{dataset/titles\textunderscore test.txt}
+	به ترتیب مجموعه‌های آموزشی و آزمایشی هستند. دادگان این دو فایل جداسازی شده دادگان فایل \lr{title-scraper/titles.txt} با نسبت ۰/۲ هستند. 
+	\section{طراحی مدل زبانی}
+	 مدل‌های زبانی bigram و trigram برای تولید عناوین خبری پیاده‌سازی شدند. توابع 
+	 \lr{cal\textunderscore 2gram\textunderscore prob}
+	 و
+	 \lr{cal\textunderscore 3gram\textunderscore prob}
+	 برای محاسبه احتمال وقوع کلمه بعدی به کلاس اضافه شدند. 
+	 
+	 تابع 
+	 \lr{Average\textunderscore log\textunderscore likelihood}
+	 برای محاسبه معیار ارزیابی مدل‌ها به کلاس اضافه شد. پارامتر 
+	 \lr{prepared\textunderscore test\textunderscore data}
+	 در تابع 
+	 \lr{evaluate\textunderscore model}
+	 از جنس 
+	 \lr{prepared\textunderscore data}
+	 است که عضو داده‌ای کلاس DataProcessor است.
+	 \section{ارزیابی}
+	 مقدار 
+	 \lr{Average log likelihood}
+	 روی ۳۰۰ نمونه از دادگان آزمایشی محاسبه شد که نتایج آن در جدول زیر قابل مشاهده است:
+	 \begin{table}[h]
+	 	\begin{center}
+	 		\begin{tabular}{|c|c|}
+	 			\hline
+	 			\lr{2gram} & \lr{3gram} \\
+	 			\hline
+	 			$ -2/57 $ & $ -2/46 $ \\
+	 			\hline
+	 		\end{tabular}
+ 		\caption{نتایج}
+ 		\label{table1}
+	 	\end{center}
+	 \end{table} 
+	
+	همان‌طور که انتظار می‌رفت مقدار فوق برای 
+	\lr{2gram}
+	کمتر از 
+	\lr{3gram}
+	به‌دست آمد. دلیل این امر آن است که \lr{3gram} برای محاسبه احتمال وقوع کلمه در جایگاه فعلی، دو کلمه قبل از آن را در نظر می‌گیرد. در حالی که \lr{2gram} تنها کلمه قبل را در نظر می‌گیرد. لازم به ذکر است به دلیل دامنه مقادیر احتمال(بین صفر و یک) منفی شدن مقدار فوق طبیعی است و هر چه به صفر نزدیک‌تر باشد مدل عملکرد بهتری داشته است.
+	\subsection{ارزیابی بر مبنای \lr{log perplexity}}
+	اگر معیار 
+	\lr{Average log likelihood}
+	را  به اختصار با ALLL نشان دهیم:
+	\[
+	ALLL(W) = \frac{1}{N}\sum_{i=1}^{N} \log P(w_i)
+	\]
+	که $ W=w_1w_2\cdots w_N $ سند حاصل از الصاق
+	\LTRfootnote{Concatenate}
+	جملات آزمایشی است و 
+	$w_i$ها
+	نشان‌دهنده کلمات هستند و $ N $ تعداد کلمات است. 
+	\begin{align*}
+		\log perplexity &= \log \sqrt[N]{\frac{1}{P(w_1w_2\cdots w_N)}} \\
+		&= -\frac1N \log \prod_{i=1}^{N} P(w_i) \\
+		&= -\frac1N \sum_{i=1}^{N} \log P(w_i) = -ALLL(W)
+	\end{align*}
+	بنابراین قرینه مقادیر جدول 
+	\ref{table1}
+مقدار 
+	\lr{log perplexity}	
+	را به ما می‌دهد.
+	
+	 
+	 
+\end{document}
