@@ -1,4 +1,4 @@
-# Persian News Tiltle Generation using Ngram Language Models
+# Persian News Titles Generation using Ngram Language Models
 * In This Project I was implemented a Ngram Language Model(bigram and trigram) for Generating Persian News Titles.
 * For creating the dataset, I crawled Titles from isna and irna websites archive sections. the size of dataset is about 2500 titles which you can see in title-scraper/title.txt. crawling has been done using scrapy in python3.
 * frequent.txt is most frequent keywords in the dataset. 
